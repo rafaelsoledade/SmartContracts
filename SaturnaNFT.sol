@@ -13,12 +13,10 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract SaturnaNFT is ERC721, Ownable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
-    Counters.Counter private _NFTTypeIds;
+    Counters.Counter public _tokenIds;
+    Counters.Counter public _NFTTypeIds;
     
     IERC20 public saturna;
-    // uint256 public saturnaAmount = 0;
-
     // Mapping NFT Type ID to its URI and count
     mapping (uint256 => NFT) public NFTTypeMap;
     mapping (address => mapping (uint256 => uint256[])) public NFTAddressToID;
@@ -28,6 +26,7 @@ contract SaturnaNFT is ERC721, Ownable {
     address public devAddress;
 
     constructor(address _saturnaAddress, address _devAddress) 
+    
     public ERC721("SATURNA", "SAT") {
         isWhitelisted[msg.sender] = true;
         saturna = IERC20(_saturnaAddress);
@@ -52,9 +51,15 @@ contract SaturnaNFT is ERC721, Ownable {
 
     receive() external payable {}
 
-    function addWhitelist(address _whitelistAddress) external onlyWhitelist {
+    function addWhitelist(address _whitelistAddress) external onlyOwner {
         isWhitelisted[_whitelistAddress] = true;
     }
+
+    function removeWhitelist(address _whitelistAddress) external onlyOwner {
+        require(isWhitelisted[_whitelistAddress], "User does not exist");
+        isWhitelisted[_whitelistAddress] = false;
+    }
+
 
     function addNFT(uint256 _count, string memory _tokenURI, uint256 _price,
     uint256 _startTimestamp, uint256 _endTimestamp, uint256 _saturnaAmount) 
@@ -102,7 +107,7 @@ contract SaturnaNFT is ERC721, Ownable {
         return newItemId;
     }
 
-    function setSaturnaAddress (uint256 _saturnaAddress) external onlyOwner {
+    function setSaturnaAddress (address _saturnaAddress) external onlyOwner {
         saturna = IERC20(_saturnaAddress); 
     }
 
@@ -166,6 +171,7 @@ contract SaturnaNFT is ERC721, Ownable {
     function withdrawFunds(address _payeeWallet) external onlyOwner returns (bool) {
         require(address(this).balance > 0);
         payable(_payeeWallet).transfer(address(this).balance);
+        return true;
     }
 
     function setDevAddress (address _devAddress) external onlyOwner {
